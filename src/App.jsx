@@ -25,13 +25,15 @@ function App() {
     location.pathname.startsWith(path)
   );
 
+  const isAuthRoute = ["/login", "/register"].includes(location.pathname);
+
   return (
     <div className="flex flex-col min-h-screen">
 
       {/* 🔥 Hide Navbar */}
       {!shouldHideLayout && <Navbar />}
 
-      <main className="grow">
+      <main className={`grow flex flex-col ${isAuthRoute ? "bg-gradient-to-br from-blue-50 to-blue-100" : ""}`}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

@@ -144,7 +144,7 @@ const handleResetPassword = async () => {
 };
 
   return (
-    <div className="w-full min-h-[calc(100vh-76px)] flex justify-center items-center py-10 bg-gradient-to-br from-blue-50">
+    <div className="w-full flex-1 flex justify-center items-center py-6 sm:py-12 px-4">
 
       {/* CARD */}
       <div
