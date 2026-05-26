@@ -152,67 +152,76 @@ const handleBookClick = () => {
         {doctors.map((doc) => (
           <div
             key={doc._id}
-            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-200 border border-gray-100 overflow-hidden"
+            className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-200 border border-gray-100 overflow-hidden flex flex-col pt-6"
           >
-            {/* Doctor Image */}
-            <img
-src={
-  doc.image?.startsWith("/uploads")
-    ? `https://medidost-backend.onrender.com${doc.image}`
-    : doc.image || "https://via.placeholder.com/400x250?text=Doctor"
-}
-              alt={doc.name}
-              className="w-full h-52 object-cover"
-            />
+            {/* Doctor Image Container (Circular Avatar) */}
+            <div className="flex justify-center mb-4 relative">
+              {/* Outer decorative ring bg */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50/20 opacity-40 blur-xl rounded-full w-36 h-36 mx-auto -top-2"></div>
+              
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-slate-50 flex items-center justify-center">
+                <img
+                  src={
+                    doc.image?.startsWith("/uploads")
+                      ? `https://medidost-backend.onrender.com${doc.image}`
+                      : doc.image || "https://via.placeholder.com/150?text=Doctor"
+                  }
+                  alt={doc.name}
+                  className="w-full h-full object-cover object-top"
+                />
+              </div>
+            </div>
 
             {/* Doctor Info */}
-            <div className="p-5">
-              <h3 className="text-xl font-semibold text-blue-700 mb-1">
-                {doc.name}
-              </h3>
-              <p className="text-gray-600 mb-2">{doc.specialization}</p>
-
-              {/* Rating */}
-<div className="flex items-center gap-1 mb-3">
-  {[1, 2, 3, 4, 5].map((star) => (
-    <FaStar
-      key={star}
-      className={
-        star <= Math.floor(doc.rating || 0)
-          ? "text-yellow-400"
-          : "text-gray-300"
-      }
-    />
-  ))}
-
-  <span className="ml-2 text-sm text-gray-700 font-medium">
-    {doc.rating ? doc.rating.toFixed(1) : "0.0"}
-  </span>
-
-  <span className="text-gray-500 text-xs">
-    ({doc.numReviews || 0} reviews)
-  </span>
-</div>
-
-              {/* Details */}
-              <div className="text-gray-700 text-sm mb-2">
-                <p>
-                  <span className="font-medium">Experience:</span> {doc.experience}{" "}
-                  years
+            <div className="p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-blue-900 mb-0.5 text-center">
+                  {doc.name}
+                </h3>
+                <p className="text-blue-600 text-sm mb-3 text-center font-semibold">
+                  {doc.specialization}
                 </p>
-                <p>
-                  <span className="font-medium">Location:</span> {doc.location}
-                </p>
-                <p>
-                  <span className="font-medium">Consultation Fee:</span> ₹
-                  {doc.consultationFee}
-                </p>
-                <p>
-                  <span className="font-medium">Phone:</span> {doc.phone}
-                </p>
-              </div>
 
-              {/* Availability + Button */}
+                {/* Rating */}
+                <div className="flex items-center justify-center gap-1 mb-4 bg-slate-50 py-1 px-3 rounded-full w-max mx-auto border border-slate-100">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
+                      key={star}
+                      className={
+                        star <= Math.floor(doc.rating || 0)
+                          ? "text-yellow-400 text-xs"
+                          : "text-gray-200 text-xs"
+                      }
+                    />
+                  ))}
+                  <span className="ml-1 text-xs text-gray-700 font-bold">
+                    {doc.rating ? doc.rating.toFixed(1) : "0.0"}
+                  </span>
+                  <span className="text-gray-400 text-[10px] ml-1">
+                    ({doc.numReviews || 0})
+                  </span>
+                </div>
+
+                {/* Details */}
+                <div className="text-gray-650 text-sm mb-4 space-y-1.5 border-t border-slate-100 pt-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 font-medium">Experience:</span>
+                    <span className="font-semibold text-gray-700">{doc.experience} years</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 font-medium">Location:</span>
+                    <span className="font-semibold text-gray-700">{doc.location}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 font-medium">Consultation Fee:</span>
+                    <span className="font-semibold text-gray-700 text-emerald-600">₹{doc.consultationFee}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 font-medium">Phone:</span>
+                    <span className="font-semibold text-gray-700">{doc.phone}</span>
+                  </div>
+                </div>
+              </div>    {/* Availability + Button */}
               <div className="flex justify-between items-center mt-4">
 <span
   className={`text-sm font-semibold px-3 py-1 rounded-full ${

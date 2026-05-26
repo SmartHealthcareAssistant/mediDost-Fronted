@@ -78,6 +78,64 @@ const CompleteProfile = () => {
     });
   };
 
+  // Helper to resize and compress image to max dimensions on client-side
+  const resizeImageFile = (file, maxWidth, maxHeight, callback) => {
+    const img = document.createElement("img");
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+
+    reader.onerror = () => {
+      toast.error("Failed to read image file.");
+      callback(file);
+    };
+
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      // Handle scaling aspect ratio
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            callback(file);
+            return;
+          }
+          const resizedFile = new File([blob], file.name, {
+            type: file.type,
+            lastModified: Date.now(),
+          });
+          callback(resizedFile);
+        },
+        file.type || "image/jpeg",
+        0.85 // 85% compression quality
+      );
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   // ----------------------------------------------------
   // Handle File Changes
   // ----------------------------------------------------
@@ -85,11 +143,38 @@ const CompleteProfile = () => {
     const { name, files: selectedFiles } = e.target;
     if (!selectedFiles[0]) return;
 
-    setFiles({ ...files, [name]: selectedFiles[0] });
+    const file = selectedFiles[0];
+    const maxSize = 2 * 1024 * 1024; // 2MB limit
 
-    const reader = new FileReader();
-    reader.onloadend = () => setPreview({ ...preview, [name]: reader.result });
-    reader.readAsDataURL(selectedFiles[0]);
+    // Validate file size limit
+    if (file.size > maxSize) {
+      toast.error(`File size of "${file.name}" must be under 2MB.`);
+      e.target.value = ""; // Clear file input
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+
+    // If it's a profile image, resize it on client-side
+    if (name === "image") {
+      const toastId = toast.loading("Processing profile image...");
+      resizeImageFile(file, 600, 600, (resizedFile) => {
+        setFiles({ ...files, image: resizedFile });
+        
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview({ ...preview, image: reader.result });
+          toast.success("Profile image optimized successfully!", { id: toastId });
+        };
+        reader.readAsDataURL(resizedFile);
+      });
+    } else {
+      // Document uploads (Aadhar, license, degree, certificates)
+      setFiles({ ...files, [name]: file });
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview({ ...preview, [name]: reader.result });
+      reader.readAsDataURL(file);
+    }
   };
 
   // ----------------------------------------------------
