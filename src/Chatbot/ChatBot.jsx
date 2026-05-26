@@ -19,26 +19,31 @@ import { useNavigate } from "react-router-dom";
 export default function ChatBot() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      sender: "bot",
-      text: "Namaste I'm MediDost AI. I am here to help you identify symptoms and find the right specialist.",
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem("medidost_messages");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse saved messages", e);
+      }
+    }
+    return [
+      {
+        sender: "bot",
+        text: "Namaste I'm MediDost AI. I am here to help you identify symptoms and find the right specialist.",
+      },
+    ];
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false); // State for voice input
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState(() => {
+    return localStorage.getItem("medidost_session") || "";
+  });
   
   // Ref for auto-scrolling
   const messagesEndRef = useRef(null);
-
-  // Quick action suggestions
-  const suggestions = [
-    "Analyze Symptoms",
-    "Diet Advice",
-    "Emergency Help"
-  ];
 
   // Auto-scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -49,22 +54,31 @@ export default function ChatBot() {
     scrollToBottom();
   }, [messages, isOpen]);
 
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("medidost_messages", JSON.stringify(messages));
+  }, [messages]);
+
   // Helper function to get a new session ID
   const fetchNewSession = async () => {
     try {
       const response = await axios.get("https://medidost-backend.onrender.com/api/session");
-      setSessionId(response.data.sessionId);
+      const newId = response.data.sessionId;
+      setSessionId(newId);
+      localStorage.setItem("medidost_session", newId);
     } catch (error) {
-      // Use console.warn instead of error to avoid alarming logs
       console.warn("Backend unreachable. Switching to offline demo mode.");
-      // Fallback if server is unreachable
-      setSessionId("demo-session-" + Math.random().toString(36).substr(2, 9));
+      const demoId = "demo-session-" + Math.random().toString(36).substr(2, 9);
+      setSessionId(demoId);
+      localStorage.setItem("medidost_session", demoId);
     }
   };
 
-  // Fetch session ID on component mount
+  // Fetch session ID on component mount if not present
   useEffect(() => {
-    fetchNewSession();
+    if (!sessionId) {
+      fetchNewSession();
+    }
   }, []);
 
   // Voice Input Handler
@@ -99,15 +113,13 @@ export default function ChatBot() {
   };
 
   const handleClearChat = () => {
-    // 1. Reset UI messages
-    setMessages([
-      {
-        sender: "bot",
-        text: "Chat cleared. How can I help you now?",
-      },
-    ]);
-    
-    // 2. Fetch a NEW session ID so the backend forgets previous context
+    const defaultMsg = [{
+      sender: "bot",
+      text: "Chat cleared. How can I help you now?",
+    }];
+    setMessages(defaultMsg);
+    localStorage.removeItem("medidost_messages");
+    localStorage.removeItem("medidost_session");
     fetchNewSession();
   };
 
@@ -116,10 +128,58 @@ export default function ChatBot() {
     setIsOpen(false);
   };
 
+  // Get context-aware dynamic suggestions based on the last bot response
+  const getDynamicSuggestions = () => {
+    const botMessages = messages.filter((m) => m.sender === "bot");
+    if (botMessages.length === 0) {
+      return ["Analyze Symptoms", "Healthy Diet Advice", "Emergency Help"];
+    }
+
+    const lastBotMsg = botMessages[botMessages.length - 1];
+
+    // Case 1: High severity alert
+    if (lastBotMsg.severity === "high") {
+      return ["Find Emergency Hospital", "Ambulance Details", "First Aid Guide"];
+    }
+
+    // Case 2: Diagnostic response recommending a specialist
+    if (lastBotMsg.isDiagnostic && lastBotMsg.specialist) {
+      const spec = lastBotMsg.specialist;
+      return [
+        `Find ${spec} Now`,
+        `${spec} Care Tips`,
+        "Healthy Diet Advice"
+      ];
+    }
+
+    // Case 3: If it's a general message mentioning appointment or doctor
+    if (lastBotMsg.text && (lastBotMsg.text.toLowerCase().includes("book") || lastBotMsg.text.toLowerCase().includes("appointment"))) {
+      return ["Find General Physician", "Analyze Symptoms", "Emergency Help"];
+    }
+
+    // Case 4: Default generic quick action suggestions
+    return ["Analyze Symptoms", "Healthy Diet Advice", "Emergency Help"];
+  };
+
+  // Handle Dynamic Suggestion click
+  const handleSuggestionClick = (suggestionText) => {
+    if (suggestionText.startsWith("Find ") && suggestionText.endsWith(" Now")) {
+      const botMessages = messages.filter((m) => m.sender === "bot");
+      const lastBotMsg = botMessages[botMessages.length - 1];
+      if (lastBotMsg && lastBotMsg.specialist) {
+        handleBookDoctor(lastBotMsg.specialist);
+        return;
+      }
+    } else if (suggestionText === "Find General Physician") {
+      handleBookDoctor("General Physician");
+      return;
+    }
+    handleSend(suggestionText);
+  };
+
   const handleSend = async (text = input) => {
     if (!text.trim()) return;
 
-    // 1. Add User Message
     const userMessage = { sender: "user", text: text };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -411,13 +471,13 @@ xl:w-[380px]
             </div>
 
             {/* Suggestions Chips (Only show if not loading) */}
-            {!isLoading && messages.length < 5 && (
+            {!isLoading && (
               <div className="px-4 pb-2 bg-slate-50 overflow-x-auto flex gap-2 no-scrollbar">
-                {suggestions.map((suggestion, idx) => (
+                {getDynamicSuggestions().map((suggestion, idx) => (
                   <button
                     key={idx}
-                    onClick={() => handleSend(suggestion)}
-                    className="whitespace-nowrap bg-white border border-blue-100 text-blue-600 text-xs px-3 py-1.5 rounded-full hover:bg-blue-50 transition-colors shadow-sm"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="whitespace-nowrap bg-white border border-blue-100 text-blue-600 text-xs px-3 py-1.5 rounded-full hover:bg-blue-50 transition-colors shadow-sm cursor-pointer active:scale-95"
                   >
                     {suggestion}
                   </button>
