@@ -8,9 +8,9 @@ export default function HeroSecImg() {
     <div
       className="
         relative w-full
-        h-[75vh]
-        sm:h-[80vh]
-        md:h-[90vh]
+        h-[55vh]
+        sm:h-[70vh]
+        md:h-[80vh]
         lg:h-screen
         overflow-hidden
       "
@@ -23,12 +23,12 @@ export default function HeroSecImg() {
           absolute inset-0
           w-full h-full
           object-cover
-          object-[center_top]
+          object-center sm:object-[center_top]
         "
       />
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/40"></div>
+      <div className="absolute inset-0 bg-black/45"></div>
 
       {/* Content */}
       <div
@@ -44,13 +44,13 @@ export default function HeroSecImg() {
         <h1
           className="
             text-white font-bold
-            text-3xl
+            text-2xl
             sm:text-4xl
             md:text-5xl
             lg:text-6xl
             leading-tight
             drop-shadow-xl
-            mt-12
+            mt-6 sm:mt-12
           "
         >
           Your Health is our Priority
@@ -58,10 +58,10 @@ export default function HeroSecImg() {
 
         <p
           className="
-            mt-4
+            mt-3 sm:mt-4
             text-gray-200
-            text-sm
-            sm:text-base
+            text-xs
+            sm:text-sm
             md:text-lg
             max-w-xs
             sm:max-w-lg
@@ -73,16 +73,17 @@ export default function HeroSecImg() {
 
         <button
           className="
-            mt-6
+            mt-5 sm:mt-6
             bg-white font-bold
             text-blue-600
-            px-5 py-2.5
+            px-4 py-2
             sm:px-6 sm:py-3
             rounded-full
             shadow-lg
             hover:shadow-2xl
             transition-all duration-300
             transform hover:-translate-y-1
+            text-sm sm:text-base
           "
           onClick={() => navigate("/findDoctor")}
         >
