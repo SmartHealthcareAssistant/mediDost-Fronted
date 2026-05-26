@@ -96,33 +96,52 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* ================= MOBILE + TABLET MENU ================= */}
+        {/* ================= MOBILE + TABLET MENU (DRAWER FROM RIGHT) ================= */}
+        {/* Dark Backdrop Overlay */}
         <div
           className={`
-            lg:hidden overflow-hidden transition-all duration-300
-            ${
-              isOpen
-                ? "max-h-[500px] opacity-100"
-                : "max-h-0 opacity-0"
-            }
+            fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 lg:hidden
+            ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+          `}
+          onClick={() => setIsOpen(false)}
+        />
+
+        {/* Drawer Container */}
+        <div
+          className={`
+            fixed top-0 right-0 z-50 h-screen w-[280px] bg-white shadow-2xl transition-transform duration-300 transform lg:hidden
+            ${isOpen ? "translate-x-0" : "translate-x-full"}
           `}
         >
-          <div className="bg-white/95 backdrop-blur-md border-t shadow-lg rounded-b-2xl">
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <span className="font-bold text-lg text-blue-900 flex items-center gap-1">
+              <span className="text-blue-900">Medi</span>
+              <span className="text-teal-700">Dost</span>
+            </span>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-2xl text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <FaTimes />
+            </button>
+          </div>
 
-            <div className="flex flex-col px-4 py-4 gap-2 font-medium text-gray-700">
-
-              {/* MOBILE NAV LINKS */}
+          {/* Drawer Content */}
+          <div className="flex flex-col h-[calc(100vh-68px)] justify-between p-5 font-medium text-gray-700">
+            {/* Nav Links */}
+            <div className="space-y-2">
               {navItems.map((item, idx) => (
                 <NavLink
                   key={idx}
                   to={item.path}
                   onClick={() => setIsOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-200
+                    `flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200
                     ${
                       isActive
                         ? "bg-blue-50 text-blue-600 font-semibold"
-                        : "hover:bg-gray-100"
+                        : "hover:bg-gray-50 text-gray-700"
                     }`
                   }
                 >
@@ -130,45 +149,42 @@ export default function Navbar() {
                   {item.name}
                 </NavLink>
               ))}
+            </div>
 
-              {/* AUTH BUTTONS */}
-              <div className="flex flex-col gap-2 pt-3">
+            {/* Auth Buttons */}
+            <div className="space-y-3 pb-8">
+              {/* LOGIN */}
+              <NavLink
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="
+                  block w-full text-center
+                  py-3 rounded-xl
+                  border border-gray-300
+                  hover:bg-gray-55
+                  transition duration-200
+                  font-medium
+                "
+              >
+                Login
+              </NavLink>
 
-                {/* LOGIN */}
-                <NavLink
-                  to="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="
-                    w-full text-center
-                    px-4 py-2.5
-                    rounded-xl
-                    border border-gray-300
-                    hover:bg-gray-100
-                    transition
-                    font-medium
-                  "
-                >
-                  Login
-                </NavLink>
-
-                {/* REGISTER */}
-                <NavLink
-                  to="/register"
-                  onClick={() => setIsOpen(false)}
-                  className="
-                    w-full text-center
-                    px-4 py-2.5
-                    rounded-xl
-                    bg-blue-600 text-white
-                    hover:bg-blue-700
-                    transition
-                    font-medium
-                    shadow-md
-                  "
-                >
-                  Register
-                </NavLink>
-              </div>
+              {/* REGISTER */}
+              <NavLink
+                to="/register"
+                onClick={() => setIsOpen(false)}
+                className="
+                  block w-full text-center
+                  py-3 rounded-xl
+                  bg-blue-600 text-white
+                  hover:bg-blue-700
+                  transition duration-200
+                  font-medium
+                  shadow-md
+                "
+              >
+                Sign Up
+              </NavLink>
             </div>
           </div>
         </div>
