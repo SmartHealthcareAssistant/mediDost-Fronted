@@ -14,8 +14,10 @@ import {
   RefreshCw 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export default function ChatBot() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -109,6 +111,11 @@ export default function ChatBot() {
     fetchNewSession();
   };
 
+  const handleBookDoctor = (spec) => {
+    navigate("/findDoctor", { state: { specialization: spec } });
+    setIsOpen(false);
+  };
+
   const handleSend = async (text = input) => {
     if (!text.trim()) return;
 
@@ -125,51 +132,77 @@ export default function ChatBot() {
         sessionId,
       });
 
-    // 3. Add Bot Response
-    const { reply, specialist, severity } = response.data;
-        
-    // Add main formatted reply
-    setMessages((prev) => [
-      ...prev,
-      { sender: "bot", text: reply }
-    ]);
-    
-    // 🔴 Show emergency alert if severity is high
-    if (severity === "high") {
-      setMessages(prev => [
+      // 3. Add Bot Response
+      const { isDiagnostic, reply, possibleCause, specialist, homeCare, severity } = response.data;
+          
+      setMessages((prev) => [
         ...prev,
         {
           sender: "bot",
-          text: "🚨 This may require urgent medical attention. Please seek emergency care immediately."
+          text: reply,
+          isDiagnostic,
+          possibleCause,
+          specialist,
+          homeCare,
+          severity
         }
       ]);
-    }
     } catch (err) {
       console.warn("Backend offline, generating demo response.");
       
       // FALLBACK / DEMO MODE RESPONSES
-      // This allows the UI to work even without the backend running
       setTimeout(() => {
-        let demoReply = "I am currently in Offline Mode (Backend unavailable). I can't connect to the live AI, but I can simulate how I would work.";
+        let demoMsg = {
+          sender: "bot",
+          text: "I am currently in Offline Mode (Backend unavailable). I can't connect to the live AI, but I can simulate how I would work.",
+          isDiagnostic: false
+        };
         
         const lowerInput = text.toLowerCase();
         
         if (lowerInput.includes("fever") || lowerInput.includes("temperature") || lowerInput.includes("flu")) {
-          demoReply = "It sounds like you might have an infection. Please monitor your temperature. If it exceeds 102°F or lasts more than 3 days, consult a General Physician. Stay hydrated!";
-        } else if (lowerInput.includes("dermatologist") || lowerInput.includes("skin") || lowerInput.includes("rash")) {
-          demoReply = "I can help you find a skin specialist. Based on your location, Dr. Sharma and Dr. Verma are highly rated Dermatologists nearby. Would you like to book an appointment?";
+          demoMsg = {
+            sender: "bot",
+            text: "I'm sorry to hear that you have a fever.",
+            isDiagnostic: true,
+            possibleCause: "Fever could be due to a seasonal viral infection, common cold, or flu.",
+            specialist: "General Physician",
+            homeCare: [
+              "Drink plenty of water and ORS to stay hydrated.",
+              "Take adequate bed rest to help your body recover.",
+              "Monitor your temperature. Consult a doctor if it goes above 102°F."
+            ],
+            severity: "medium"
+          };
+        } else if (lowerInput.includes("skin") || lowerInput.includes("rash") || lowerInput.includes("itch")) {
+          demoMsg = {
+            sender: "bot",
+            text: "It looks like you have a skin irritation or rash.",
+            isDiagnostic: true,
+            possibleCause: "This could be contact dermatitis or a mild allergic skin reaction.",
+            specialist: "Dermatologist",
+            homeCare: [
+              "Keep the irritated skin clean, dry, and cool.",
+              "Avoid scratching or applying heavily scented soaps.",
+              "Apply a cold compress to reduce itching and swelling."
+            ],
+            severity: "medium"
+          };
         } else if (lowerInput.includes("appointment") || lowerInput.includes("book")) {
-          demoReply = "I can schedule that for you. Please select a preferred date and time for your visit.";
-        } else if (lowerInput.includes("mental") || lowerInput.includes("sad") || lowerInput.includes("anxiety")) {
-          demoReply = "I'm sorry you're feeling this way. Speaking to a mental health professional can really help. Would you like to see a list of available counselors?";
+          demoMsg = {
+            sender: "bot",
+            text: "To book an appointment, you can click on 'Find Doctor' in the menu or use my specialist referral buttons when I analyze symptoms.",
+            isDiagnostic: false
+          };
         } else if (lowerInput.includes("diet") || lowerInput.includes("food")) {
-          demoReply = "For a balanced diet, focus on whole grains, lean proteins, and plenty of vegetables. Avoid processed sugars. Would you like a specific meal plan for a condition?";
+          demoMsg = {
+            sender: "bot",
+            text: "For a balanced diet, prioritize whole foods, lean proteins, vegetables, and plenty of water. Avoid processed sugar.",
+            isDiagnostic: false
+          };
         }
 
-        setMessages((prev) => [
-          ...prev,
-          { sender: "bot", text: demoReply },
-        ]);
+        setMessages((prev) => [...prev, demoMsg]);
       }, 1000);
     } finally {
       setIsLoading(false);
@@ -276,7 +309,82 @@ xl:w-[380px]
                           : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
                       }`}
                     >
-                      {msg.text}
+                      {msg.sender === "bot" && msg.isDiagnostic ? (
+                        <div className="space-y-4 text-xs sm:text-sm">
+                          {/* 1. Empathy / Greeting Reply */}
+                          <p className="text-gray-800 font-medium">{msg.text}</p>
+                          
+                          {/* 2. Possible Cause Card */}
+                          {msg.possibleCause && (
+                            <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 text-blue-900 shadow-sm">
+                              <div className="flex items-center gap-1.5 font-bold mb-1 text-blue-800">
+                                <span>🔍</span> POSSIBLE CAUSE
+                              </div>
+                              <p className="text-gray-700 leading-relaxed font-normal">{msg.possibleCause}</p>
+                            </div>
+                          )}
+                          
+                          {/* 3. Recommended Doctor Card */}
+                          {msg.specialist && (
+                            <div className="bg-teal-50/60 border border-teal-100 rounded-xl p-3 text-teal-900 shadow-sm">
+                              <div className="flex items-center gap-1.5 font-bold mb-1 text-teal-850">
+                                <span>👨‍⚕️</span> RECOMMENDED REFERRAL
+                              </div>
+                              <p className="text-gray-750 mb-2.5 font-normal">
+                                It is highly recommended to consult a <span className="font-semibold text-teal-950 bg-teal-100/50 px-1.5 py-0.5 rounded">{msg.specialist}</span> for a proper clinical checkup.
+                              </p>
+                              
+                              <button
+                                onClick={() => handleBookDoctor(msg.specialist)}
+                                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-1.5 px-3 rounded-lg shadow-sm transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98]"
+                              >
+                                Find & Book {msg.specialist}
+                              </button>
+                            </div>
+                          )}
+                          
+                          {/* 4. Home Care Advice (with interactive checklist items) */}
+                          {msg.homeCare && msg.homeCare.length > 0 && (
+                            <div className="bg-amber-50/60 border border-amber-100 rounded-xl p-3 text-amber-900 shadow-sm">
+                              <div className="flex items-center gap-1.5 font-bold mb-1.5 text-amber-850">
+                                <span>💡</span> HOME CARE ADVICE
+                              </div>
+                              <div className="space-y-1.5">
+                                {msg.homeCare.map((advice, adviceIdx) => (
+                                  <label key={adviceIdx} className="flex items-start gap-2 cursor-pointer font-normal text-gray-750 hover:text-gray-900 transition-colors">
+                                    <input 
+                                      type="checkbox" 
+                                      className="mt-0.5 w-3.5 h-3.5 accent-amber-600 rounded border-gray-300 text-amber-650 focus:ring-amber-500 cursor-pointer"
+                                    />
+                                    <span>{advice}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 5. Severity Alert */}
+                          {msg.severity === "high" && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-900 shadow-sm flex items-start gap-2 animate-pulse">
+                              <span className="text-base">🚨</span>
+                              <div>
+                                <h4 className="font-bold text-red-800">URGENT MEDICAL ATTENTION:</h4>
+                                <p className="text-[11px] sm:text-xs text-red-750 font-normal leading-relaxed">
+                                  This appears to be a high-severity symptom. Please seek emergency medical care immediately or visit the nearest hospital.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 6. Medical Disclaimer */}
+                          <div className="pt-2 border-t border-gray-100 text-[10px] text-gray-400 font-normal leading-tight italic">
+                            ⚠️ Disclaimer: This is an AI triage analysis for informational purposes only. It is not a professional diagnosis.
+                          </div>
+                        </div>
+                      ) : (
+                        /* Normal plain text reply */
+                        msg.text
+                      )}
                     </div>
                   </div>
                 </div>

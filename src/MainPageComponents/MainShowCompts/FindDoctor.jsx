@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaSearch, FaStar, FaStethoscope } from "react-icons/fa";
 import { MdLocationOn } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Example specializations
 const specializations = [
@@ -27,6 +27,7 @@ const specializations = [
 
 const FindDoctor = () => {
   const navigate = useNavigate();
+  const routeLocation = useLocation();
   const [location, setLocation] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [doctors, setDoctors] = useState([]);
@@ -44,14 +45,16 @@ const FindDoctor = () => {
   });
 
   // Fetch doctors from backend
-  const searchDoctors = async () => {
+  const searchDoctors = async (specOverride = null) => {
     setLoading(true);
     setError("");
+
+    const activeSpec = specOverride !== null ? specOverride : specialization;
 
     try {
       const params = {};
       if (location) params.location = location;
-      if (specialization) params.specialization = specialization;
+      if (activeSpec) params.specialization = activeSpec;
 
       const { data } = await axios.get(
         "https://medidost-backend.onrender.com/api/doctor/search",
@@ -72,6 +75,17 @@ const FindDoctor = () => {
       setLoading(false);
     }
   };
+
+  // Check if specialization was passed via route state (e.g. from chatbot)
+  useEffect(() => {
+    if (routeLocation.state?.specialization) {
+      const spec = routeLocation.state.specialization;
+      if (specializations.includes(spec)) {
+        setSpecialization(spec);
+        searchDoctors(spec);
+      }
+    }
+  }, [routeLocation]);
 
   // Handle appointment 
 const handleBookClick = () => {
