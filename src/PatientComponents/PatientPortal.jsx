@@ -856,7 +856,7 @@ text-base sm:text-lg md:text-xl lg:text-2xl
         {p.files.map((f, i) => (
           <a
             key={i}
-            href={`https://medidost-backend.onrender.com${f}`}
+            href={f.startsWith("http") ? f : `https://medidost-backend.onrender.com${f}`}
             target="_blank"
             rel="noreferrer"
             className="text-blue-600 underline block"
@@ -925,7 +925,9 @@ text-base sm:text-lg md:text-xl lg:text-2xl
                      <img
   src={
     d.image
-      ? `https://medidost-backend.onrender.com${d.image}`
+      ? d.image.startsWith("http")
+        ? d.image
+        : `https://medidost-backend.onrender.com${d.image}`
       : "https://via.placeholder.com/150"
   }
   alt={d.name}
