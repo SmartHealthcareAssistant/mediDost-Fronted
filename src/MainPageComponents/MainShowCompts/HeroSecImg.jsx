@@ -11,12 +11,13 @@ export default function HeroSecImg() {
         h-[35vh]
         sm:h-[50vh]
         md:h-[60vh]
-        lg:h-[75vh]
+        lg:h-[80vh]
+        xl:h-[85vh]
         max-h-[260px]
         sm:max-h-[380px]
-        md:max-h-[480px]
-        lg:max-h-[600px]
-        xl:max-h-[700px]
+        md:max-h-[500px]
+        lg:max-h-[720px]
+        xl:max-h-[800px]
         overflow-hidden
       "
     >
