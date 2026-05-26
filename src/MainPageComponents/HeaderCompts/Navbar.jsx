@@ -49,7 +49,7 @@ export default function Navbar() {
           </NavLink>
 
           {/* ================= DESKTOP MENU ================= */}
-          <div className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-gray-700">
+          <div className="hidden md:flex items-center gap-6 xl:gap-8 font-medium text-gray-700">
 
             {/* NAV LINKS */}
             {navItems.map((item, idx) => (
@@ -89,7 +89,7 @@ export default function Navbar() {
 
           {/* ================= MOBILE MENU BUTTON ================= */}
           <button
-            className="lg:hidden text-2xl text-gray-700"
+            className="md:hidden text-2xl text-gray-700"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <FaTimes /> : <FaBars />}
@@ -100,7 +100,7 @@ export default function Navbar() {
         {/* Dark Backdrop Overlay */}
         <div
           className={`
-            fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 lg:hidden
+            fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden
             ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
           `}
           onClick={() => setIsOpen(false)}
@@ -109,7 +109,7 @@ export default function Navbar() {
         {/* Drawer Container */}
         <div
           className={`
-            fixed top-0 right-0 z-50 h-screen w-[280px] bg-white shadow-2xl transition-transform duration-300 transform lg:hidden
+            fixed top-0 right-0 z-50 h-screen w-[280px] bg-white shadow-2xl transition-transform duration-300 transform md:hidden
             ${isOpen ? "translate-x-0" : "translate-x-full"}
           `}
         >
