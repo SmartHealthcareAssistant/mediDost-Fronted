@@ -3,6 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import toast from "react-hot-toast";
 
+const getBackendUrl = () => {
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1")
+  ) {
+    return "http://localhost:5000";
+  }
+  return "https://medidost-backend.onrender.com";
+};
+
 const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -43,7 +54,7 @@ const Register = () => {
 
     try {
       setOtpLoading(true);
-      const res = await fetch("https://medidost-backend.onrender.com/send-otp", {
+      const res = await fetch(`${getBackendUrl()}/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email.trim().toLowerCase() }),
@@ -69,7 +80,7 @@ const Register = () => {
     }
 
     try {
-      const res = await fetch("https://medidost-backend.onrender.com/verify-otp", {
+      const res = await fetch(`${getBackendUrl()}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -133,7 +144,7 @@ const Register = () => {
 
     try {
       setIsSubmitting(true);
-      const res = await fetch(`https://medidost-backend.onrender.com/api/${role}/register`, {
+      const res = await fetch(`${getBackendUrl()}/api/${role}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
